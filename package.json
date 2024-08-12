@@ -46,11 +46,15 @@
   ],
   "devDependencies": {
     "@size-limit/preset-small-lib": "^11.1.4",
+    "@types/post-robot": "^10.0.6",
     "husky": "^9.1.4",
     "np": "^10.0.7",
     "size-limit": "^11.1.4",
     "tsdx": "^0.14.1",
     "tslib": "^2.6.3",
     "typescript": "^5.5.4"
+  },
+  "dependencies": {
+    "post-robot": "^8.0.32"
   }
 }

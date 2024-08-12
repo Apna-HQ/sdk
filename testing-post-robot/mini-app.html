@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini App</title>
+</head>
+<body>
+    <h1>Mini App</h1>
+
+    <!-- Include post-robot from unpkg -->
+    <script src="https://unpkg.com/post-robot/dist/post-robot.min.js"></script>
+    <script>
+        // Send a handshake message to the parent window
+        postRobot.send(window.parent, 'handshake:init', { appId: 'miniApp123' })
+            .then((event) => {
+                console.log('Received handshake response from host:', event.data);
+            })
+            .catch((err) => {
+                console.error('Handshake failed:', err);
+            });
+
+        // Listen for messages from the host
+        postRobot.on('superapp:init', (event) => {
+            console.log('Received message from host:', event.data);
+            return { success: true, message: 'Mini app initialized successfully' };
+        });
+    </script>
+</body>
+</html>

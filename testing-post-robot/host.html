@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super App - Host</title>
+</head>
+<body>
+    <h1>Super App Host</h1>
+    <iframe id="miniAppIframe" src="mini-app.html" style="width: 600px; height: 400px; border: 1px solid black;"></iframe>
+
+    <!-- Include post-robot from unpkg -->
+    <script src="https://unpkg.com/post-robot/dist/post-robot.min.js"></script>
+    <script>
+        // Listen for the handshake from the mini app
+        postRobot.on('handshake:init', (event) => {
+            console.log('Received handshake from mini app:', event.data);
+            return {
+                success: true,
+                message: 'Handshake successful from host'
+            };
+        });
+
+        // Send a message to the mini app after handshake
+        const iframe = document.getElementById('miniAppIframe');
+        iframe.onload = function() {
+            postRobot.send(iframe.contentWindow, 'superapp:init', { message: 'Hello from host!' })
+                .then((event) => {
+                    console.log('Response from mini app:', event.data);
+                });
+        };
+    </script>
+</body>
+</html>
