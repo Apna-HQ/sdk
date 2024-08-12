@@ -22,9 +22,11 @@ export class ApnaApp {
             appId: this.config.appId,
             // @ts-ignore
             version: this.sdkVersion,
+            // @ts-ignore
         }).then((event) => {
             console.log('Received handshake response from super app:', event.data);
             // Additional logic after handshake
+            // @ts-ignore
         }).catch((err) => {
             console.error('Handshake failed:', err);
         });
@@ -57,9 +59,11 @@ export class ApnaApp {
     // @ts-ignore
     sendData(data) {
         postRobot.send(window.parent, 'miniapp:data', data)
+            // @ts-ignore
             .then((event) => {
                 console.log('Response from super app:', event.data);
             })
+            // @ts-ignore
             .catch((err) => {
                 console.error('Failed to send data:', err);
             });
