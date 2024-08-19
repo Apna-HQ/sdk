@@ -17,6 +17,11 @@ export class ApnaHost {
   // Respond to the handshake message
   // @ts-ignore
   respondToHandshake(data) {
+    // @ts-ignore
+    postRobot.on('miniapp:data', (event) => {
+        console.log('Received data from mini app:', event.data);
+        return;
+    });
     return {
       success: true,
       appId: data.appId,
