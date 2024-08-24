@@ -1,7 +1,15 @@
 import postRobot from 'post-robot';
 
+interface IMethodHandlers {
+    getPublicKey?: () => string | Promise<string>
+}
+
 export class ApnaHost {
-  constructor() {
+    methodHandlers: IMethodHandlers = {}
+  constructor(config: {
+    methodHandlers: IMethodHandlers
+  }) {
+    this.methodHandlers = config.methodHandlers
     this.listenForHandshake();
   }
 
@@ -11,6 +19,26 @@ export class ApnaHost {
     postRobot.on('handshake:init', (event) => {
       console.log('Received handshake from mini app:', event.data);
       return this.respondToHandshake(event.data);
+    });
+  }
+
+  // Listen for handshake initiation from mini apps
+  listenForMethodCalls() {
+    // @ts-ignore
+    postRobot.on('host:method-call', async (event) => {
+      console.log('Received method-call from mini app:', event.data); 
+      try {
+        const returnValue = await this.methodHandlers[event.data.method as 'getPublicKey']!()
+        return {
+            success: true,
+            returnValue
+        }
+      } catch (error) {
+        return {
+            success: false,
+            errorMessage: error?.toString()
+        }
+      }
     });
   }
 

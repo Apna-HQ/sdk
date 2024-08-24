@@ -75,8 +75,12 @@ export class ApnaApp {
             .then((event) => {
                 console.log('return value from super app:', event.data);
                 return {
-                    success: true,
-                    returnValue: event.data
+                    // @ts-ignore
+                    success: event.data.success,
+                    // @ts-ignore
+                    returnValue: event.data.returnValue,
+                    // @ts-ignore
+                    errorMessage: event.data.errorMessage
                 };
             })
             // @ts-ignore
