@@ -100,7 +100,7 @@ export class ApnaApp {
         
     }
 
-    getPublicKey = this.callHostMethod({method: "getPublicKey", args: []})
+    getPublicKey = () => this.callHostMethod({method: "getPublicKey", args: []})
 }
 
 // // Usage in the mini app
