@@ -11,6 +11,7 @@ export class ApnaHost {
   }) {
     this.methodHandlers = config.methodHandlers
     this.listenForHandshake();
+    this.listenForMethodCalls();
   }
 
   // Listen for handshake initiation from mini apps
