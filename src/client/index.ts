@@ -68,6 +68,35 @@ export class ApnaApp {
                 console.error('Failed to send data:', err);
             });
     }
+
+    callHostMethod = async (callData: {method: string, args: any[]}): Promise<{success: boolean, returnValue?: any, errorMessage?: string}> => {
+        return postRobot.send(window.parent, 'host:method-call', callData)
+            // @ts-ignore
+            .then((event) => {
+                console.log('return value from super app:', event.data);
+                return {
+                    success: true,
+                    returnValue: event.data
+                };
+            })
+            // @ts-ignore
+            .catch((err) => {
+                console.error('Failed to send data:', err);
+                return {
+                    success: false,
+                    errorMessage: err.toString()
+                }
+            });
+        
+    }
+
+    getPublicKey = async () => {
+        const publicKey = await this.callHostMethod({
+            method: "getPublicKey",
+            args: []
+        })
+        return publicKey
+    }
 }
 
 // // Usage in the mini app
