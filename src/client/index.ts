@@ -69,8 +69,8 @@ export class ApnaApp {
             });
     }
 
-    callHostMethod = async (callData: {method: string, args: any[]}): Promise<{success: boolean, returnValue?: any, errorMessage?: string}> => {
-        return postRobot.send(window.parent, 'host:method-call', callData)
+    callHostMethod = async (callData: {method: string, args: any[]}): Promise<any> => {
+        const response: {success: boolean, returnValue?: any, errorMessage?: string} = await postRobot.send(window.parent, 'host:method-call', callData)
             // @ts-ignore
             .then((event) => {
                 console.log('return value from super app:', event.data);
@@ -91,16 +91,16 @@ export class ApnaApp {
                     errorMessage: err.toString()
                 }
             });
+        if (response.success) {
+            return response.returnValue
+        } else {
+            throw new Error(response.errorMessage)
+        }
+
         
     }
 
-    getPublicKey = async () => {
-        const publicKey = await this.callHostMethod({
-            method: "getPublicKey",
-            args: []
-        })
-        return publicKey
-    }
+    getPublicKey = this.callHostMethod({method: "getPublicKey", args: []})
 }
 
 // // Usage in the mini app
