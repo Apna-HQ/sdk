@@ -2,6 +2,9 @@ import postRobot from 'post-robot';
 
 interface IMethodHandlers {
     getPublicKey?: () => string | Promise<string>
+    nostr?: {
+      subscribeToEvents?: (filters: any[], onevent: (event: any) => void) => void
+    }
 }
 
 export class ApnaHost {
@@ -29,7 +32,21 @@ export class ApnaHost {
     postRobot.on('host:method-call', async (event) => {
       console.log('Received method-call from mini app:', event.data); 
       try {
-        const returnValue = await this.methodHandlers[event.data.method as 'getPublicKey']!()
+        let returnValue
+        switch (event.data.method) {
+          case 'getPublicKey':
+            returnValue = await this.methodHandlers[event.data.method as 'getPublicKey']!()
+            break;
+
+          case 'nostr.subscribeToEvents':
+            returnValue = await this.methodHandlers.nostr!.subscribeToEvents!(event.data.args[0], event.data.args[1])
+            break;
+        
+          default:
+            returnValue = null
+            break;
+        }
+        
         return {
             success: true,
             returnValue

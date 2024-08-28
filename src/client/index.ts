@@ -7,6 +7,8 @@ export class ApnaApp {
         this.config = config;
         // @ts-ignore
         this.sdkVersion = '1.0.0';
+
+        this.initSDK()
     }
 
     // Initialize the SDK
@@ -101,6 +103,9 @@ export class ApnaApp {
     }
 
     getPublicKey = () => this.callHostMethod({method: "getPublicKey", args: []})
+    nostr = {
+        subscribeToEvents: (filters: any[], onevent: (event: any) => void) => this.callHostMethod({method: "nostr.subscribeToEvents", args: [filters, onevent]})
+    }
 }
 
 // // Usage in the mini app
