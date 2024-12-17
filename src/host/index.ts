@@ -1,9 +1,10 @@
 import postRobot from 'post-robot';
 
 interface IMethodHandlers {
-    getPublicKey?: () => string | Promise<string>
+    // getPublicKey?: () => string | Promise<string>
     nostr?: {
-      subscribeToEvents?: (filters: any[], onevent: (event: any) => void) => void
+      getProfile: () => any
+      // subscribeToEvents?: (filters: any[], onevent: (event: any) => void) => void
     }
 }
 
@@ -34,14 +35,18 @@ export class ApnaHost {
       try {
         let returnValue
         switch (event.data.method) {
-          case 'getPublicKey':
-            returnValue = await this.methodHandlers[event.data.method as 'getPublicKey']!()
-            break;
+          // case 'getPublicKey':
+          //   returnValue = await this.methodHandlers[event.data.method as 'getPublicKey']!()
+          //   break;
 
-          case 'nostr.subscribeToEvents':
-            returnValue = await this.methodHandlers.nostr!.subscribeToEvents!(event.data.args[0], event.data.args[1])
+          // case 'nostr.subscribeToEvents':
+          //   returnValue = await this.methodHandlers.nostr!.subscribeToEvents!(event.data.args[0], event.data.args[1])
+          //   break;
+          
+          case 'nostr.getProfile':
+            returnValue = await this.methodHandlers.nostr?.getProfile()
             break;
-        
+            
           default:
             returnValue = null
             break;

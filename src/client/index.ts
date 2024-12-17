@@ -102,9 +102,10 @@ export class ApnaApp {
         
     }
 
-    getPublicKey = () => this.callHostMethod({method: "getPublicKey", args: []})
+    // getPublicKey = () => this.callHostMethod({method: "getPublicKey", args: []})
     nostr = {
-        subscribeToEvents: (filters: any[], onevent: (event: any) => void) => this.callHostMethod({method: "nostr.subscribeToEvents", args: [filters, onevent]})
+        getProfile: () => this.callHostMethod({ method: "nostr.getProfile", args: [] })
+        // subscribeToEvents: (filters: any[], onevent: (event: any) => void) => this.callHostMethod({method: "nostr.subscribeToEvents", args: [filters, onevent]})
     }
 }
 
