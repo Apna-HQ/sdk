@@ -3,7 +3,9 @@ import postRobot from 'post-robot';
 interface IMethodHandlers {
     // getPublicKey?: () => string | Promise<string>
     nostr?: {
-      getProfile: () => any
+      getProfile: () => any,
+      followNpub: (npub: string) => void,
+      unfollowNpub: (npub: string) => void,
       // subscribeToEvents?: (filters: any[], onevent: (event: any) => void) => void
     }
 }
@@ -46,7 +48,15 @@ export class ApnaHost {
           case 'nostr.getProfile':
             returnValue = await this.methodHandlers.nostr?.getProfile()
             break;
-            
+
+          case 'nostr.followNpub':
+            returnValue = await this.methodHandlers.nostr?.followNpub(event.data.args[0])
+            break;
+
+          case 'nostr.unfollowNpub':
+            returnValue = await this.methodHandlers.nostr?.unfollowNpub(event.data.args[0])
+            break;
+
           default:
             returnValue = null
             break;
