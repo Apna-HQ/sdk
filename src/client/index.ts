@@ -108,7 +108,9 @@ export class ApnaApp {
         updateProfile: (profile: any) => this.callHostMethod({ method: "nostr.updateProfile", args: [profile] }),
         followNpub: (npub: string) => this.callHostMethod({ method: "nostr.followNpub", args: [npub] }),
         unfollowNpub: (npub: string) => this.callHostMethod({ method: "nostr.unfollowNpub", args: [npub] }),
-        publishNote: (content: string) => this.callHostMethod({ method: "nostr.publishNote", args: [content] })
+        publishNote: (content: string) => this.callHostMethod({ method: "nostr.publishNote", args: [content] }),
+        subscribeToFeed: (feedType: string, callback: (note: any) => void) => this.callHostMethod({ method: "nostr.subscribeToFeed", args: [feedType, callback] }),
+        subscribeToNotifications: (callback: (note: any) => void) => this.callHostMethod({ method: "nostr.subscribeToNotifications", args: [callback] })
 
         // subscribeToEvents: (filters: any[], onevent: (event: any) => void) => this.callHostMethod({method: "nostr.subscribeToEvents", args: [filters, onevent]})
     }

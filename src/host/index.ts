@@ -8,7 +8,8 @@ interface IMethodHandlers {
       followNpub: (npub: string) => void,
       unfollowNpub: (npub: string) => void,
       publishNote: (content: string) => void,
-      // subscribeToEvents?: (filters: any[], onevent: (event: any) => void) => void
+      subscribeToFeed: (feedType: string, onevent: (event: any) => void) => void,
+      subscribeToNotifications: (onevent: (event: any) => void) => void
     }
 }
 
@@ -43,9 +44,13 @@ export class ApnaHost {
           //   returnValue = await this.methodHandlers[event.data.method as 'getPublicKey']!()
           //   break;
 
-          // case 'nostr.subscribeToEvents':
-          //   returnValue = await this.methodHandlers.nostr!.subscribeToEvents!(event.data.args[0], event.data.args[1])
-          //   break;
+          case 'nostr.subscribeToFeed':
+            returnValue = await this.methodHandlers.nostr?.subscribeToFeed(event.data.args[0], event.data.args[1])
+            break;
+
+          case 'nostr.subscribeToNotifications':
+            returnValue = await this.methodHandlers.nostr?.subscribeToNotifications(event.data.args[0])
+            break;
           
           case 'nostr.getProfile':
             returnValue = await this.methodHandlers.nostr?.getProfile()
