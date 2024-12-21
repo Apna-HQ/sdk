@@ -8,6 +8,9 @@ interface IMethodHandlers {
       followNpub: (npub: string) => void,
       unfollowNpub: (npub: string) => void,
       publishNote: (content: string) => void,
+      repostNote: (noteId: string, quoteContent: string) => void,
+      likeNote: (noteId: string) => void,
+      replyToNote: (noteId: string, content: string) => void,
       subscribeToFeed: (feedType: string, onevent: (event: any) => void) => void,
       subscribeToNotifications: (onevent: (event: any) => void) => void
     }
@@ -71,7 +74,19 @@ export class ApnaHost {
           case 'nostr.publishNote':
             returnValue = await this.methodHandlers.nostr?.publishNote(event.data.args[0])
             break;
+          
+          case 'nostr.repostNote':
+            returnValue = await this.methodHandlers.nostr?.repostNote(event.data.args[0], event.data.args[1])
+            break;
 
+          case 'nostr.likeNote':
+              returnValue = await this.methodHandlers.nostr?.likeNote(event.data.args[0])
+              break;
+          
+          case 'nostr.replyToNote':
+            returnValue = await this.methodHandlers.nostr?.replyToNote(event.data.args[0], event.data.args[1])
+            break;
+          
           default:
             returnValue = null
             break;

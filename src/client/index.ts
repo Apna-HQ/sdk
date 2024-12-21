@@ -109,6 +109,9 @@ export class ApnaApp {
         followNpub: (npub: string) => this.callHostMethod({ method: "nostr.followNpub", args: [npub] }),
         unfollowNpub: (npub: string) => this.callHostMethod({ method: "nostr.unfollowNpub", args: [npub] }),
         publishNote: (content: string) => this.callHostMethod({ method: "nostr.publishNote", args: [content] }),
+        repostNote: (noteId: string, quoteString: string) => this.callHostMethod({ method: "nostr.repostNote", args: [noteId, quoteString] }),
+        likeNote: (noteId: string) => this.callHostMethod({ method: "nostr.likeNote", args: [noteId] }),
+        replyToNote: (noteId: string, content: string) => this.callHostMethod({ method: "nostr.replyToNote", args: [noteId, content] }),
         subscribeToFeed: (feedType: string, callback: (note: any) => void) => this.callHostMethod({ method: "nostr.subscribeToFeed", args: [feedType, callback] }),
         subscribeToNotifications: (callback: (note: any) => void) => this.callHostMethod({ method: "nostr.subscribeToNotifications", args: [callback] })
 
