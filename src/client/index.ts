@@ -105,6 +105,7 @@ export class ApnaApp {
     // getPublicKey = () => this.callHostMethod({method: "getPublicKey", args: []})
     nostr = {
         getProfile: () => this.callHostMethod({ method: "nostr.getProfile", args: [] }),
+        getNpubProfile: (npub: string) => this.callHostMethod({ method: "nostr.getNpubProfile", args: [npub] }),
         updateProfile: (profile: any) => this.callHostMethod({ method: "nostr.updateProfile", args: [profile] }),
         followNpub: (npub: string) => this.callHostMethod({ method: "nostr.followNpub", args: [npub] }),
         unfollowNpub: (npub: string) => this.callHostMethod({ method: "nostr.unfollowNpub", args: [npub] }),
@@ -113,6 +114,7 @@ export class ApnaApp {
         likeNote: (noteId: string) => this.callHostMethod({ method: "nostr.likeNote", args: [noteId] }),
         replyToNote: (noteId: string, content: string) => this.callHostMethod({ method: "nostr.replyToNote", args: [noteId, content] }),
         subscribeToFeed: (feedType: string, callback: (note: any) => void) => this.callHostMethod({ method: "nostr.subscribeToFeed", args: [feedType, callback] }),
+        subscribeToNpubFeed: (npub: string, feedType: string, callback: (note: any) => void) => this.callHostMethod({ method: "nostr.subscribeToNpubFeed", args: [npub, feedType, callback] }),
         subscribeToNotifications: (callback: (note: any) => void) => this.callHostMethod({ method: "nostr.subscribeToNotifications", args: [callback] })
 
         // subscribeToEvents: (filters: any[], onevent: (event: any) => void) => this.callHostMethod({method: "nostr.subscribeToEvents", args: [filters, onevent]})

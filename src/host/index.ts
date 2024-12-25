@@ -4,6 +4,7 @@ interface IMethodHandlers {
     // getPublicKey?: () => string | Promise<string>
     nostr?: {
       getProfile: () => any,
+      getNpubProfile: (npub: string) => any,
       updateProfile: (profile: any) => void,
       followNpub: (npub: string) => void,
       unfollowNpub: (npub: string) => void,
@@ -12,6 +13,7 @@ interface IMethodHandlers {
       likeNote: (noteId: string) => void,
       replyToNote: (noteId: string, content: string) => void,
       subscribeToFeed: (feedType: string, onevent: (event: any) => void) => void,
+      subscribeToNpubFeed: (npub: string, feedType: string, onevent: (event: any) => void) => void,
       subscribeToNotifications: (onevent: (event: any) => void) => void
     }
 }
@@ -50,6 +52,10 @@ export class ApnaHost {
           case 'nostr.subscribeToFeed':
             returnValue = await this.methodHandlers.nostr?.subscribeToFeed(event.data.args[0], event.data.args[1])
             break;
+          
+          case 'nostr.subscribeToNpubFeed':
+            returnValue = await this.methodHandlers.nostr?.subscribeToNpubFeed(event.data.args[0], event.data.args[1], event.data.args[2])
+            break;
 
           case 'nostr.subscribeToNotifications':
             returnValue = await this.methodHandlers.nostr?.subscribeToNotifications(event.data.args[0])
@@ -58,6 +64,10 @@ export class ApnaHost {
           case 'nostr.getProfile':
             returnValue = await this.methodHandlers.nostr?.getProfile()
             break;
+
+            case 'nostr.getNpubProfile':
+              returnValue = await this.methodHandlers.nostr?.getNpubProfile(event.data.args[0])
+              break;
           
           case 'nostr.updateProfile':
             returnValue = await this.methodHandlers.nostr?.updateProfile(event.data.args[0])
