@@ -1,3 +1,4 @@
+export * from "./react"
 import postRobot from 'post-robot';
 import { INostr } from '../interfaces/nostr';
 
