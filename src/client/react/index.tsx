@@ -14,24 +14,27 @@ export const useApna = () => {
 };
 
 export function NostrProvider({ children }: { children: React.ReactNode }) {
-  const [apna, setApna] = useState<any>();
+  const [apna, setApna] = useState<ApnaApp>();
 
   useEffect(() => {
+    console.log("before init")
     const init = async () => {
+      console.log("inside init")
       if (!apna) {
         const { ApnaApp } = await import("..");
         const apna = new ApnaApp({ appId: "apna-nostr-mvp-1" });
         setApna(apna);
-      }
+      } else {
       console.log(
         "nostr.getProfile return value: ",
         await apna.nostr.getProfile()
       );
+    }
     };
     init();
   }, []);
 
   return (
-    <ApnaContext.Provider value={apna}>{children}</ApnaContext.Provider>
+    <ApnaContext.Provider value={apna || null}>{children}</ApnaContext.Provider>
   );
 }
