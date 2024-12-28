@@ -10,17 +10,17 @@ export class ApnaApp {
         // @ts-ignore
         this.sdkVersion = '1.0.0';
 
-        this.#initSDK()
+        this.initSDK()
     }
 
     // Initialize the SDK
-    #initSDK() {
-        this.#handshake();
-        this.#listenForMessages();
+    initSDK() {
+        this.handshake();
+        this.listenForMessages();
     }
 
     // Perform a handshake with the parent window (super app)
-    #handshake() {
+    handshake() {
         postRobot.send(window.parent, 'handshake:init', {
             // @ts-ignore
             appId: this.config.appId,
@@ -37,18 +37,18 @@ export class ApnaApp {
     }
 
     // Register a listener for incoming messages from the parent
-    #listenForMessages() {
+    listenForMessages() {
         // @ts-ignore
         postRobot.on('superapp:message', (event) => {
             console.log('Received message from super app:', event.data);
             // Handle the message
-            return this.#handleMessage(event.data);
+            return this.handleMessage(event.data);
         });
     }
 
     // Handle messages received from the parent window
     // @ts-ignore
-    #handleMessage(data) {
+    handleMessage(data) {
         if (data.type === 'handshake:response') {
             console.log('Handshake response received:', data);
             return { success: true };
@@ -61,7 +61,7 @@ export class ApnaApp {
 
     // Example method for sending data to the super app
     // @ts-ignore
-    #sendData(data) {
+    sendData(data) {
         postRobot.send(window.parent, 'miniapp:data', data)
             // @ts-ignore
             .then((event) => {
@@ -73,7 +73,7 @@ export class ApnaApp {
             });
     }
 
-    #callHostMethod = async (callData: {method: string, args: any[]}): Promise<any> => {
+    callHostMethod = async (callData: {method: string, args: any[]}): Promise<any> => {
         const response: {success: boolean, returnValue?: any, errorMessage?: string} = await postRobot.send(window.parent, 'host:method-call', callData)
             // @ts-ignore
             .then((event) => {
@@ -104,7 +104,7 @@ export class ApnaApp {
         
     }
 
-    #createHostMethodProxy<T>(proxyHandler: (method: string, ...args: any) => void): T {
+    createHostMethodProxy<T>(proxyHandler: (method: string, ...args: any) => void): T {
         const handler: ProxyHandler<any> = {
           get(_, methodName: string) {
             return (...args: any[]) => {
@@ -116,9 +116,9 @@ export class ApnaApp {
         return new Proxy({}, handler) as T;
       }
 
-    #hostMethodProxyHandler = (module: string) => {
+    hostMethodProxyHandler = (module: string) => {
         return (method: string, ...args: any[]) => {
-            return this.#callHostMethod({
+            return this.callHostMethod({
                 method: `${module}.${method}`,
                 args
             })
@@ -126,8 +126,8 @@ export class ApnaApp {
     }
     
     // Initialising modules
-    NostrClient = this.#createHostMethodProxy<INostrClient>(this.#hostMethodProxyHandler("NostrClient"))
-    Nostr = this.#createHostMethodProxy<INostr>(this.#hostMethodProxyHandler("Nostr"))
+    NostrClient = this.createHostMethodProxy<INostrClient>(this.hostMethodProxyHandler("NostrClient"))
+    Nostr = this.createHostMethodProxy<INostr>(this.hostMethodProxyHandler("Nostr"))
 
 }
 
