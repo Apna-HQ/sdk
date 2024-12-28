@@ -3,11 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { ApnaApp } from "..";
 
-interface ApnaContextType {
-  nostr: any;
-}
-
-const ApnaContext = createContext<ApnaContextType | null>(null);
+const ApnaContext = createContext<ApnaApp | null>(null);
 
 export const useApna = () => {
   const context = useContext(ApnaContext);
