@@ -1,21 +1,9 @@
 import postRobot from 'post-robot';
+import { INostr, INostrClient } from '../interfaces/nostr';
 
 interface IMethodHandlers {
-    // getPublicKey?: () => string | Promise<string>
-    nostr?: {
-      getProfile: () => any,
-      getNpubProfile: (npub: string) => any,
-      updateProfile: (profile: any) => void,
-      followNpub: (npub: string) => void,
-      unfollowNpub: (npub: string) => void,
-      publishNote: (content: string) => void,
-      repostNote: (noteId: string, quoteContent: string) => void,
-      likeNote: (noteId: string) => void,
-      replyToNote: (noteId: string, content: string) => void,
-      subscribeToFeed: (feedType: string, onevent: (event: any) => void) => void,
-      subscribeToNpubFeed: (npub: string, feedType: string, onevent: (event: any) => void) => void,
-      subscribeToNotifications: (onevent: (event: any) => void) => void
-    }
+    NostrClient?: INostrClient
+    Nostr?: INostr
 }
 
 export class ApnaHost {
@@ -43,64 +31,17 @@ export class ApnaHost {
     postRobot.on('host:method-call', async (event) => {
       console.log('Received method-call from mini app:', event.data); 
       try {
-        let returnValue
-        switch (event.data.method) {
-          // case 'getPublicKey':
-          //   returnValue = await this.methodHandlers[event.data.method as 'getPublicKey']!()
-          //   break;
+        const [ module, method ] = (event.data.method as string).split(".")
 
-          case 'nostr.subscribeToFeed':
-            returnValue = await this.methodHandlers.nostr?.subscribeToFeed(event.data.args[0], event.data.args[1])
-            break;
-          
-          case 'nostr.subscribeToNpubFeed':
-            returnValue = await this.methodHandlers.nostr?.subscribeToNpubFeed(event.data.args[0], event.data.args[1], event.data.args[2])
-            break;
-
-          case 'nostr.subscribeToNotifications':
-            returnValue = await this.methodHandlers.nostr?.subscribeToNotifications(event.data.args[0])
-            break;
-          
-          case 'nostr.getProfile':
-            returnValue = await this.methodHandlers.nostr?.getProfile()
-            break;
-
-            case 'nostr.getNpubProfile':
-              returnValue = await this.methodHandlers.nostr?.getNpubProfile(event.data.args[0])
-              break;
-          
-          case 'nostr.updateProfile':
-            returnValue = await this.methodHandlers.nostr?.updateProfile(event.data.args[0])
-            break;
-
-          case 'nostr.followNpub':
-            returnValue = await this.methodHandlers.nostr?.followNpub(event.data.args[0])
-            break;
-
-          case 'nostr.unfollowNpub':
-            returnValue = await this.methodHandlers.nostr?.unfollowNpub(event.data.args[0])
-            break;
-
-          case 'nostr.publishNote':
-            returnValue = await this.methodHandlers.nostr?.publishNote(event.data.args[0])
-            break;
-          
-          case 'nostr.repostNote':
-            returnValue = await this.methodHandlers.nostr?.repostNote(event.data.args[0], event.data.args[1])
-            break;
-
-          case 'nostr.likeNote':
-              returnValue = await this.methodHandlers.nostr?.likeNote(event.data.args[0])
-              break;
-          
-          case 'nostr.replyToNote':
-            returnValue = await this.methodHandlers.nostr?.replyToNote(event.data.args[0], event.data.args[1])
-            break;
-          
-          default:
-            returnValue = null
-            break;
+        if (!(module in this.methodHandlers)) {
+          throw new Error("module not implemented")
         }
+        // @ts-ignore
+        if (!(method in this.methodHandlers[module])) {
+          throw new Error("method not implemented")
+        }
+        // @ts-ignore
+        const returnValue = await this.methodHandlers[module][method](...event.data.args)
         
         return {
             success: true,

@@ -1,4 +1,6 @@
 import postRobot from 'post-robot';
+import { INostr, INostrClient } from '../interfaces/nostr';
+
 
 export class ApnaApp {
     // @ts-ignore
@@ -8,17 +10,17 @@ export class ApnaApp {
         // @ts-ignore
         this.sdkVersion = '1.0.0';
 
-        this.initSDK()
+        this.#initSDK()
     }
 
     // Initialize the SDK
-    initSDK() {
-        this.handshake();
-        this.listenForMessages();
+    #initSDK() {
+        this.#handshake();
+        this.#listenForMessages();
     }
 
     // Perform a handshake with the parent window (super app)
-    handshake() {
+    #handshake() {
         postRobot.send(window.parent, 'handshake:init', {
             // @ts-ignore
             appId: this.config.appId,
@@ -35,18 +37,18 @@ export class ApnaApp {
     }
 
     // Register a listener for incoming messages from the parent
-    listenForMessages() {
+    #listenForMessages() {
         // @ts-ignore
         postRobot.on('superapp:message', (event) => {
             console.log('Received message from super app:', event.data);
             // Handle the message
-            return this.handleMessage(event.data);
+            return this.#handleMessage(event.data);
         });
     }
 
     // Handle messages received from the parent window
     // @ts-ignore
-    handleMessage(data) {
+    #handleMessage(data) {
         if (data.type === 'handshake:response') {
             console.log('Handshake response received:', data);
             return { success: true };
@@ -59,7 +61,7 @@ export class ApnaApp {
 
     // Example method for sending data to the super app
     // @ts-ignore
-    sendData(data) {
+    #sendData(data) {
         postRobot.send(window.parent, 'miniapp:data', data)
             // @ts-ignore
             .then((event) => {
@@ -71,7 +73,7 @@ export class ApnaApp {
             });
     }
 
-    callHostMethod = async (callData: {method: string, args: any[]}): Promise<any> => {
+    #callHostMethod = async (callData: {method: string, args: any[]}): Promise<any> => {
         const response: {success: boolean, returnValue?: any, errorMessage?: string} = await postRobot.send(window.parent, 'host:method-call', callData)
             // @ts-ignore
             .then((event) => {
@@ -102,25 +104,34 @@ export class ApnaApp {
         
     }
 
-    // getPublicKey = () => this.callHostMethod({method: "getPublicKey", args: []})
-    nostr = {
-        getProfile: () => this.callHostMethod({ method: "nostr.getProfile", args: [] }),
-        getNpubProfile: (npub: string) => this.callHostMethod({ method: "nostr.getNpubProfile", args: [npub] }),
-        updateProfile: (profile: any) => this.callHostMethod({ method: "nostr.updateProfile", args: [profile] }),
-        followNpub: (npub: string) => this.callHostMethod({ method: "nostr.followNpub", args: [npub] }),
-        unfollowNpub: (npub: string) => this.callHostMethod({ method: "nostr.unfollowNpub", args: [npub] }),
-        publishNote: (content: string) => this.callHostMethod({ method: "nostr.publishNote", args: [content] }),
-        repostNote: (noteId: string, quoteString: string) => this.callHostMethod({ method: "nostr.repostNote", args: [noteId, quoteString] }),
-        likeNote: (noteId: string) => this.callHostMethod({ method: "nostr.likeNote", args: [noteId] }),
-        replyToNote: (noteId: string, content: string) => this.callHostMethod({ method: "nostr.replyToNote", args: [noteId, content] }),
-        subscribeToFeed: (feedType: string, callback: (note: any) => void) => this.callHostMethod({ method: "nostr.subscribeToFeed", args: [feedType, callback] }),
-        subscribeToNpubFeed: (npub: string, feedType: string, callback: (note: any) => void) => this.callHostMethod({ method: "nostr.subscribeToNpubFeed", args: [npub, feedType, callback] }),
-        subscribeToNotifications: (callback: (note: any) => void) => this.callHostMethod({ method: "nostr.subscribeToNotifications", args: [callback] })
+    #createHostMethodProxy<T>(proxyHandler: (method: string, ...args: any) => void): T {
+        const handler: ProxyHandler<any> = {
+          get(_, methodName: string) {
+            return (...args: any[]) => {
+              console.log(`Called ${methodName} with arguments:`, args);
+              return proxyHandler(methodName, ...args)
+            };
+          },
+        };
+        return new Proxy({}, handler) as T;
+      }
 
-        // subscribeToEvents: (filters: any[], onevent: (event: any) => void) => this.callHostMethod({method: "nostr.subscribeToEvents", args: [filters, onevent]})
+    #hostMethodProxyHandler = (module: string) => {
+        return (method: string, ...args: any[]) => {
+            return this.#callHostMethod({
+                method: `${module}.${method}`,
+                args
+            })
+        }
     }
+    
+    // Initialising modules
+    NostrClient = this.#createHostMethodProxy<INostrClient>(this.#hostMethodProxyHandler("NostrClient"))
+    Nostr = this.#createHostMethodProxy<INostr>(this.#hostMethodProxyHandler("Nostr"))
+
 }
 
-// // Usage in the mini app
-// const sdk = new SuperAppSDK({ appId: 'miniApp123' });
-// sdk.initSDK();
+// const { NostrClient, Nostr } = new ApnaApp({})
+// NostrClient.PublishEvent({})
+// const a = new Nostr("here")
+// a.publishNote("test")
