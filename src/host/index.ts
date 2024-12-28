@@ -1,9 +1,8 @@
 import postRobot from 'post-robot';
-import { INostr, INostrClient } from '../interfaces/nostr';
+import { INostr } from '../interfaces/nostr';
 
 interface IMethodHandlers {
-    NostrClient?: INostrClient
-    Nostr?: INostr
+    nostr?: INostr
 }
 
 export class ApnaHost {

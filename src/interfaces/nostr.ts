@@ -1,8 +1,13 @@
-export interface INostrClient {
-    PublishEvent: (event: any) => void
-}
-
 export interface INostr {
+
+    // LOW-LEVEL APIs
+    // NostrClient.PublishEvent(signer=()=>{}, event={}, relays=[])
+    // NostrClient.FetchEvent(eventFilters=[{}], relays=[])
+    // NostrClient.FetchAllEvents(eventFilters=[{}], relays=[])
+    // NostrClient.SubscribeToEvents(eventFilters=[{}], relays=[], eventHandler=(e)=>{})
+    // NostrClient.Unsubscribe(subscription)
+
+    // HIGH-LEVEL APIs
     getProfile: () => any,
     getNpubProfile: (npub: string) => any,
     updateProfile: (profile: any) => void,

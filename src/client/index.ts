@@ -1,5 +1,5 @@
 import postRobot from 'post-robot';
-import { INostr, INostrClient } from '../interfaces/nostr';
+import { INostr } from '../interfaces/nostr';
 
 
 export class ApnaApp {
@@ -126,12 +126,10 @@ export class ApnaApp {
     }
     
     // Initialising modules
-    NostrClient = this.createHostMethodProxy<INostrClient>(this.hostMethodProxyHandler("NostrClient"))
-    Nostr = this.createHostMethodProxy<INostr>(this.hostMethodProxyHandler("Nostr"))
+    nostr = this.createHostMethodProxy<INostr>(this.hostMethodProxyHandler("nostr"))
 
 }
 
-// const { NostrClient, Nostr } = new ApnaApp({})
-// NostrClient.PublishEvent({})
+// const { Nostr } = new ApnaApp({})
 // const a = new Nostr("here")
 // a.publishNote("test")
