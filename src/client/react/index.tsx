@@ -19,6 +19,7 @@ export function NostrProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const init = async () => {
       if (!apna) {
+        const { ApnaApp } = await import("..");
         const apna = new ApnaApp({ appId: "apna-nostr-mvp-1" });
         setApna(apna);
       }
