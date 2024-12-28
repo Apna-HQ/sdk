@@ -24,7 +24,7 @@ export function NostrProvider({ children }: { children: React.ReactNode }) {
     const init = async () => {
       if (!apna) {
         const apna = new ApnaApp({ appId: "apna-nostr-mvp-1" });
-        setApna(apna.nostr);
+        setApna(apna);
       }
       console.log(
         "nostr.getProfile return value: ",
@@ -35,6 +35,6 @@ export function NostrProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <ApnaContext.Provider value={{ apna }}>{children}</ApnaContext.Provider>
+    <ApnaContext.Provider value={apna}>{children}</ApnaContext.Provider>
   );
 }
