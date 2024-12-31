@@ -28,8 +28,6 @@ export function NostrProvider({ children }: { children: React.ReactNode }) {
         const { ApnaApp } = await import("..");
         apna = new ApnaApp({ appId: "apna-nostr-mvp-1" });
         setNostr(apna.nostr);
-        // @ts-ignore
-        window.apna = apna;
       }
       console.log(
         "nostr.getProfile return value: ",
