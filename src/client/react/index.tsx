@@ -3,10 +3,16 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { ApnaApp } from "..";
 
-const ApnaContext = createContext<ApnaApp | null>(null);
+let apna: ApnaApp;
 
-export const useApna = () => {
-  const context = useContext(ApnaContext);
+interface NostrContextType {
+  nostr: any;
+}
+
+const NostrContext = createContext<NostrContextType | null>(null);
+
+export const useNostr = () => {
+  const context = useContext(NostrContext);
   if (!context) {
     throw new Error("useNostr must be used within a NostrProvider");
   }
@@ -14,27 +20,26 @@ export const useApna = () => {
 };
 
 export function NostrProvider({ children }: { children: React.ReactNode }) {
-  const [apna, setApna] = useState<ApnaApp>();
+  const [nostr, setNostr] = useState<any>();
 
   useEffect(() => {
-    console.log("before init")
     const init = async () => {
-      console.log("inside init")
       if (!apna) {
         const { ApnaApp } = await import("..");
-        const apna = new ApnaApp({ appId: "apna-nostr-mvp-1" });
-        setApna(apna);
-      } else {
+        apna = new ApnaApp({ appId: "apna-nostr-mvp-1" });
+        setNostr(apna.nostr);
+        // @ts-ignore
+        window.apna = apna;
+      }
       console.log(
         "nostr.getProfile return value: ",
         await apna.nostr.getProfile()
       );
-    }
     };
     init();
   }, []);
 
   return (
-    <ApnaContext.Provider value={apna || null}>{children}</ApnaContext.Provider>
+    <NostrContext.Provider value={{ nostr }}>{children}</NostrContext.Provider>
   );
 }
