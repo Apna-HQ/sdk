@@ -60,7 +60,7 @@ interface IEvent {
     relays?: string[];
 }
 
-interface UnsignedEvent extends Omit<IEvent, "sig"> {}
+// interface UnsignedEvent extends Omit<IEvent, "sig"> {}
 
 export interface INoteReactions {
     likes: INoteLike[],
