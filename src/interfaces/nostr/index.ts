@@ -11,25 +11,25 @@ export interface INostr {
     // HIGH-LEVEL APIs
     
     // user-scope
-    getActiveUserProfile: () => IUserProfile,
-    fetchUserMetadata: (npub: string) => IUserMetadata,
-    updateProfileMetadata: (profile: IUserMetadata) => IUserProfile,
-    fetchUserProfile: (npub: string) => IUserProfile,
-    followUser: (npub: string) => void,
-    unfollowUser: (npub: string) => void,
+    getActiveUserProfile: () => Promise<IUserProfile> | IUserProfile,
+    fetchUserMetadata: (npub: string) => Promise<IUserMetadata> | IUserMetadata,
+    updateProfileMetadata: (profile: IUserMetadata) => Promise<IUserProfile> | IUserProfile,
+    fetchUserProfile: (npub: string) => Promise<IUserProfile> | IUserProfile,
+    followUser: (npub: string) => Promise<void> | void,
+    unfollowUser: (npub: string) => Promise<void> | void,
 
     // note-scope
-    fetchNote: (noteId: string, returnReactions?: Boolean) => INote,
-    fetchNoteAndReplies: (noteId: string, returnReactions?: Boolean) => INoteAndReplies,
-    publishNote: (content: string) => INote,
-    repostNote: (noteId: string, quoteContent: string) => INoteRepost,
-    likeNote: (noteId: string) => INoteLike,
-    replyToNote: (noteId: string, content: string) => INoteReply,
+    fetchNote: (noteId: string, returnReactions?: Boolean) => Promise<INote> | INote,
+    fetchNoteAndReplies: (noteId: string, returnReactions?: Boolean) => Promise<INoteAndReplies> | INoteAndReplies,
+    publishNote: (content: string) => Promise<INote> | INote,
+    repostNote: (noteId: string, quoteContent: string) => Promise<INoteRepost> | INoteRepost,
+    likeNote: (noteId: string) => Promise<INoteLike> | INoteLike,
+    replyToNote: (noteId: string, content: string) => Promise<INoteReply> | INoteReply,
 
     // feed-scope
-    subscribeToFeed: (feedType: string, onevent: (event: IEvent) => void, withReactions?: Boolean) => void,
-    subscribeToUserFeed: (npub: string, feedType: FeedType, onevent: (event: IEvent) => void, withReactions?: Boolean) => void,
-    subscribeToUserNotifications?: (onevent: (event: IEvent) => void) => void
+    subscribeToFeed: (feedType: string, onevent: (event: IEvent) => void, withReactions?: Boolean) => Promise<void> | void,
+    subscribeToUserFeed: (npub: string, feedType: FeedType, onevent: (event: IEvent) => void, withReactions?: Boolean) => Promise<void> | void,
+    subscribeToUserNotifications?: (onevent: (event: IEvent) => void) => Promise<void> | void
 }
 
 export interface IUserProfile {
