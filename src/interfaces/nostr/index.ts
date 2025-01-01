@@ -91,7 +91,7 @@ export type FeedType = "FOLLOWING_FEED" | "NOTES_FEED"
 
 export interface IEventFilter {
     // [key: `#${string}`]: string[] | undefined;
-    [key: string]: string[] | undefined | number | number[];
+    [key: string]: string[] | undefined | number | number[] | string;
     ids?: string[];
     kinds?: number[];
     authors?: string[];
