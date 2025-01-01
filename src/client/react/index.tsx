@@ -31,7 +31,7 @@ export function NostrProvider({ children }: { children: React.ReactNode }) {
       }
       console.log(
         "nostr.getProfile return value: ",
-        await apna.nostr.getProfile()
+        await apna.nostr.getActiveUserProfile()
       );
     };
     init();
