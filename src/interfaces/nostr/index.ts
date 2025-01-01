@@ -90,8 +90,8 @@ export interface INoteAndReplies {
 export type FeedType = "FOLLOWING_FEED" | "NOTES_FEED"
 
 export interface IEventFilter {
-    // @ts-ignore
-    [key: `#${string}`]: string[] | undefined;
+    // [key: `#${string}`]: string[] | undefined;
+    [key: string]: string[] | undefined | number | number[];
     ids?: string[];
     kinds?: number[];
     authors?: string[];
