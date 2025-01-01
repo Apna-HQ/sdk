@@ -1,14 +1,14 @@
 import postRobot from 'post-robot';
 import { INostr } from '../interfaces/nostr';
 
-interface IMethodHandlers {
+export interface IHostMethodHandlers {
     nostr?: INostr
 }
 
 export class ApnaHost {
-    methodHandlers: IMethodHandlers = {}
+    methodHandlers: IHostMethodHandlers = {}
   constructor(config: {
-    methodHandlers: IMethodHandlers
+    methodHandlers: IHostMethodHandlers
   }) {
     this.methodHandlers = config.methodHandlers
     this.listenForHandshake();
