@@ -87,10 +87,12 @@ export interface INoteAndReplies {
     replyNotes: INoteReply[]
 }
 
-type FeedType = "FOLLOWING_FEED" | "NOTES_FEED"
+export type FeedType = "FOLLOWING_FEED" | "NOTES_FEED"
+
+export type IEventTagFilterKey = `#${string}`
 
 export interface IEventFilter {
-    [key: `#${string}`]: string[] | undefined;
+    [key: IEventTagFilterKey]: string[] | undefined;
     ids?: string[];
     kinds?: number[];
     authors?: string[];
