@@ -27,6 +27,8 @@ export interface INostr {
     replyToNote: (noteId: string, content: string) => Promise<INoteReply> | INoteReply,
 
     // feed-scope
+    fetchFeed: (feedType: string, since?: number, until?: number, limit?: number) => Promise<IEvent[]> | IEvent[],
+    fetchUserFeed: (npub: string, feedType: string, since?: number, until?: number, limit?: number) => Promise<IEvent[]> | IEvent[],
     subscribeToFeed: (feedType: string, onevent: (event: IEvent) => void, withReactions?: Boolean) => Promise<void> | void,
     subscribeToUserFeed: (npub: string, feedType: FeedType, onevent: (event: IEvent) => void, withReactions?: Boolean) => Promise<void> | void,
     subscribeToUserNotifications?: (onevent: (event: IEvent) => void) => Promise<void> | void
