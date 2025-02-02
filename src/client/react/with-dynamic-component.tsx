@@ -1,5 +1,3 @@
-"use client"
-
 import React, { useState, createContext, useContext, useEffect } from "react"
 
 interface RemoteButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
