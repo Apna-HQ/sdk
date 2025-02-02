@@ -135,7 +135,7 @@ export const withDynamicComponent = (remoteModuleName: string, DefaultComponent:
   function DynamicComponent(props: any) {
     const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false)
     const [RemoteComponent, setRemoteComponent] = useState<React.ComponentType<RemoteButtonProps> | null>(null)
-    const [_, setError] = useState<string | null>(null)
+    // const [_, setError] = useState<string | null>(null)
     const [validRemotes, setValidRemotes] = useState<Set<string>>(new Set())
     const [showSubmitForm, setShowSubmitForm] = useState(false)
     const [formData, setFormData] = useState({ remoteName: '', remoteEntry: '' })
@@ -200,7 +200,7 @@ export const withDynamicComponent = (remoteModuleName: string, DefaultComponent:
         }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to load remote component'
-        setError(errorMessage)
+        // setError(errorMessage)
         console.error(`Error: ${errorMessage}`)
       }
     }
