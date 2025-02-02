@@ -54,7 +54,7 @@ interface SelectOptionProps {
   onClick: () => void
 }
 
-const SelectOption = ({ value, label, onClick }: SelectOptionProps) => (
+const SelectOption = ({ label, onClick }: SelectOptionProps) => (
   <button
     className="w-full px-4 py-2 text-left hover:bg-gray-100"
     onClick={onClick}
@@ -135,7 +135,7 @@ export const withDynamicComponent = (remoteModuleName: string, DefaultComponent:
   function DynamicComponent(props: any) {
     const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false)
     const [RemoteComponent, setRemoteComponent] = useState<React.ComponentType<RemoteButtonProps> | null>(null)
-    const [error, setError] = useState<string | null>(null)
+    const [_, setError] = useState<string | null>(null)
     const [validRemotes, setValidRemotes] = useState<Set<string>>(new Set())
     const [showSubmitForm, setShowSubmitForm] = useState(false)
     const [formData, setFormData] = useState({ remoteName: '', remoteEntry: '' })
