@@ -2,7 +2,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { ApnaApp } from "..";
-import { withDynamicComponent, DynamicComponentProvider, useDynamicComponent } from "./with-dynamic-component";
 
 let apna: ApnaApp;
 
@@ -42,5 +41,3 @@ export function NostrProvider({ children }: { children: React.ReactNode }) {
     <NostrContext.Provider value={{ nostr }}>{children}</NostrContext.Provider>
   );
 }
-
-export { withDynamicComponent, DynamicComponentProvider, useDynamicComponent };
