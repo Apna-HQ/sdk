@@ -1,34 +1,50 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { ApnaApp } from "..";
+import { INostr } from "../../interfaces";
 
-let apna: ApnaApp;
-
-interface NostrContextType {
-  nostr: any;
+interface ApnaContextType {
+  remoteComponentSelections?: {
+    [appId: string]: {
+      [remoteModuleName: string]: string
+    }
+  }
+  toggleHighlight: () => void;
+  isHighlighted: boolean;
+  nostr: INostr;
 }
 
-const NostrContext = createContext<NostrContextType | null>(null);
+export const ApnaContext = createContext<ApnaContextType | null>(null);
 
-export const useNostr = () => {
-  const context = useContext(NostrContext);
+export const useApna = () => {
+  const context = useContext(ApnaContext);
   if (!context) {
-    throw new Error("useNostr must be used within a NostrProvider");
+    throw new Error("useApna must be used within a ApnaProvider");
   }
   return context;
 };
 
-export function NostrProvider({ children }: { children: React.ReactNode }) {
-  const [nostr, setNostr] = useState<any>();
+export function ApnaProvider({ children }: { children: React.ReactNode }) {
+  const [nostr, setNostr] = useState<INostr>();
+  const [isHighlighted, setIsHighlighted] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const toggleHighlight = () => {
+    setIsHighlighted(prev => {
+      console.log(`toggled from ${prev} to ${!prev}`)
+      return !prev
+    })
+  }
+
+  // @ts-ignore
+  window.toggleHighlight = toggleHighlight
 
   useEffect(() => {
     const init = async () => {
-      if (!apna) {
-        const { ApnaApp } = await import("..");
-        apna = new ApnaApp({ appId: "apna-nostr-mvp-1" });
-        setNostr(apna.nostr);
-      }
+      const { ApnaApp } = await import("..");
+      const apna = new ApnaApp({ appId: "apna-nostr-mvp-1" });
+      setNostr(apna.nostr);
+      setLoading(false);
       console.log(
         "nostr.getProfile return value: ",
         await apna.nostr.getActiveUserProfile()
@@ -37,7 +53,9 @@ export function NostrProvider({ children }: { children: React.ReactNode }) {
     init();
   }, []);
 
+  if (!nostr || loading) return <div>Bootstrapping ApnaApp...</div>;  
+
   return (
-    <NostrContext.Provider value={{ nostr }}>{children}</NostrContext.Provider>
+    <ApnaContext.Provider value={{ nostr, isHighlighted, toggleHighlight }}>{children}</ApnaContext.Provider>
   );
 }

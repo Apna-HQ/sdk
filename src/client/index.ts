@@ -53,6 +53,10 @@ export class ApnaApp {
         if (data.type === 'handshake:response') {
             console.log('Handshake response received:', data);
             return { success: true };
+        } else if (data.type === 'customise:toggleHighlight') {
+            // @ts-ignore
+            window.toggleHighlight()
+            return { success: true, message: 'Triggered toggleHighlight' }
         } else {
             console.log('Handling other message types:', data);
             // Process the message
