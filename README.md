@@ -1,103 +1,164 @@
-# TSDX User Guide
+# Apna SDK
 
-Congrats! You just saved yourself hours of work by bootstrapping this project with TSDX. Let’s get you oriented with what’s here and how to use it.
+A TypeScript SDK for building mini-apps that integrate with the Apna super app ecosystem, with a focus on Nostr protocol integration.
 
-> This TSDX setup is meant for developing libraries (not apps!) that can be published to NPM. If you’re looking to build a Node app, you could use `ts-node-dev`, plain `ts-node`, or simple `tsc`.
+## Overview
 
-> If you’re new to TypeScript, checkout [this handy cheatsheet](https://devhints.io/typescript)
+The Apna SDK provides a seamless communication layer between mini-apps and the Apna super app. It enables mini-apps to leverage the capabilities of the super app, particularly its Nostr protocol implementation, without having to implement these features themselves.
 
-## Commands
+## Features
 
-TSDX scaffolds your new library inside `/src`.
+- **Cross-Window Communication**: Secure communication between mini-apps and the super app using post-robot
+- **Nostr Protocol Integration**: Access to Nostr functionality through a simple API
+- **React Integration**: Ready-to-use React components and hooks for easy integration
+- **TypeScript Support**: Full TypeScript definitions for improved developer experience
 
-To run TSDX, use:
+## Installation
 
 ```bash
-npm start # or yarn start
+npm install @apna/sdk
+# or
+yarn add @apna/sdk
 ```
 
-This builds to `/dist` and runs the project in watch mode so any edits you save inside `src` causes a rebuild to `/dist`.
+## Usage
 
-To do a one-off build, use `npm run build` or `yarn build`.
+### In a Mini-App
 
-To run tests, use `npm test` or `yarn test`.
+#### Basic Usage
 
-## Configuration
+```typescript
+import { ApnaApp } from '@apna/sdk';
 
-Code quality is set up for you with `prettier`, `husky`, and `lint-staged`. Adjust the respective fields in `package.json` accordingly.
+// Initialize the SDK
+const apna = new ApnaApp({ appId: 'your-mini-app-id' });
 
-### Jest
+// Use Nostr functionality
+async function getProfile() {
+  try {
+    const profile = await apna.nostr.getActiveUserProfile();
+    console.log('Current user profile:', profile);
+  } catch (error) {
+    console.error('Failed to get profile:', error);
+  }
+}
 
-Jest tests are set up to run with `npm test` or `yarn test`.
-
-### Bundle Analysis
-
-[`size-limit`](https://github.com/ai/size-limit) is set up to calculate the real cost of your library with `npm run size` and visualize the bundle with `npm run analyze`.
-
-#### Setup Files
-
-This is the folder structure we set up for you:
-
-```txt
-/src
-  index.tsx       # EDIT THIS
-/test
-  blah.test.tsx   # EDIT THIS
-.gitignore
-package.json
-README.md         # EDIT THIS
-tsconfig.json
+// Send data to the super app
+apna.sendData({ type: 'custom-event', payload: { key: 'value' } });
 ```
 
-### Rollup
+#### React Integration
 
-TSDX uses [Rollup](https://rollupjs.org) as a bundler and generates multiple rollup configs for various module formats and build settings. See [Optimizations](#optimizations) for details.
+```tsx
+import React from 'react';
+import { ApnaProvider, useApna } from '@apna/sdk';
 
-### TypeScript
+function App() {
+  return (
+    <ApnaProvider>
+      <YourApp />
+    </ApnaProvider>
+  );
+}
 
-`tsconfig.json` is set up to interpret `dom` and `esnext` types, as well as `react` for `jsx`. Adjust according to your needs.
-
-## Continuous Integration
-
-### GitHub Actions
-
-Two actions are added by default:
-
-- `main` which installs deps w/ cache, lints, tests, and builds on all pushes against a Node and OS matrix
-- `size` which comments cost comparison of your library on every pull request using [`size-limit`](https://github.com/ai/size-limit)
-
-## Optimizations
-
-Please see the main `tsdx` [optimizations docs](https://github.com/palmerhq/tsdx#optimizations). In particular, know that you can take advantage of development-only optimizations:
-
-```js
-// ./types/index.d.ts
-declare var __DEV__: boolean;
-
-// inside your code...
-if (__DEV__) {
-  console.log('foo');
+function YourApp() {
+  const { nostr } = useApna();
+  
+  async function handlePublishNote() {
+    try {
+      const note = await nostr.publishNote('Hello from my mini-app!');
+      console.log('Published note:', note);
+    } catch (error) {
+      console.error('Failed to publish note:', error);
+    }
+  }
+  
+  return (
+    <div>
+      <h1>My Mini App</h1>
+      <button onClick={handlePublishNote}>Publish Note</button>
+    </div>
+  );
 }
 ```
 
-You can also choose to install and use [invariant](https://github.com/palmerhq/tsdx#invariant) and [warning](https://github.com/palmerhq/tsdx#warning) functions.
+### In the Super App (Host)
 
-## Module Formats
+```typescript
+import { ApnaHost } from '@apna/sdk';
 
-CJS, ESModules, and UMD module formats are supported.
+// Initialize the host with method handlers
+const host = new ApnaHost({
+  methodHandlers: {
+    nostr: {
+      // Implement the Nostr interface methods
+      getActiveUserProfile: async () => {
+        // Your implementation
+        return {
+          nprofile: 'npub1...',
+          metadata: { name: 'User', about: 'About me' },
+          following: [],
+          followers: []
+        };
+      },
+      publishNote: async (content) => {
+        // Your implementation
+        return { /* note object */ };
+      },
+      // Implement other methods...
+    }
+  }
+});
 
-The appropriate paths are configured in `package.json` and `dist/index.js` accordingly. Please report if any issues are found.
+// Send a message to a mini-app
+const iframe = document.getElementById('mini-app-iframe');
+host.sendMessage(iframe, 'superapp:message', { type: 'customise:toggleHighlight' });
+```
 
-## Named Exports
+## Nostr API
 
-Per Palmer Group guidelines, [always use named exports.](https://github.com/palmerhq/typescript#exports) Code split inside your React app instead of your React library.
+The SDK provides a comprehensive API for interacting with the Nostr protocol:
 
-## Including Styles
+### User Management
 
-There are many ways to ship styles, including with CSS-in-JS. TSDX has no opinion on this, configure how you like.
+- `getActiveUserProfile()`: Get the currently active user profile
+- `fetchUserMetadata(npub)`: Fetch metadata for a specific user
+- `updateProfileMetadata(profile)`: Update the current user's profile metadata
+- `followUser(npub)`: Follow a user
+- `unfollowUser(npub)`: Unfollow a user
 
-For vanilla CSS, you can include it at the root directory and add it to the `files` section in your `package.json`, so that it can be imported separately by your users and run through their bundler's loader.
+### Content Management
 
-## Publishing to NPM
+- `fetchNote(noteId)`: Fetch a specific note
+- `fetchNoteAndReplies(noteId)`: Fetch a note and its replies
+- `publishNote(content)`: Publish a new note
+- `repostNote(noteId, quoteContent)`: Repost a note with optional quote content
+- `likeNote(noteId)`: Like a note
+- `replyToNote(noteId, content)`: Reply to a note
 
-We recommend using [np](https://github.com/sindresorhus/np).
+### Feed Management
+
+- `fetchFeed(feedType, since, until, limit)`: Fetch a feed of notes
+- `fetchUserFeed(npub, feedType, since, until, limit)`: Fetch a user's feed
+- `subscribeToFeed(feedType, onevent)`: Subscribe to a feed for real-time updates
+- `subscribeToUserFeed(npub, feedType, onevent)`: Subscribe to a user's feed
+
+## Development
+
+```bash
+# Install dependencies
+npm install
+
+# Start development mode
+npm start
+
+# Build the library
+npm run build
+
+# Run tests
+npm test
+```
+
+## License
+
+MIT

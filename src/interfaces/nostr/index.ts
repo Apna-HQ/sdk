@@ -12,8 +12,6 @@ export interface INostr {
     
     // user-scope
     getActiveUserProfile: () => Promise<IUserProfile> | IUserProfile,
-    getAvailableUserProfiles: () => Promise<IUserProfile[]> | IUserProfile[],
-    switchUserProfile: (npub: string) => Promise<IUserProfile> | IUserProfile,
     fetchUserMetadata: (npub: string) => Promise<IUserMetadata> | IUserMetadata,
     updateProfileMetadata: (profile: IUserMetadata) => Promise<IUserProfile> | IUserProfile,
     fetchUserProfile: (npub: string) => Promise<IUserProfile> | IUserProfile,
