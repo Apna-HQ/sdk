@@ -24,6 +24,8 @@ export interface INostr {
     publishNote: (content: string) => Promise<INote> | INote,
     repostNote: (noteId: string, quoteContent: string) => Promise<INoteRepost> | INoteRepost,
     likeNote: (noteId: string) => Promise<INoteLike> | INoteLike,
+    fetchNoteLikes: (noteId: string) => Promise<INoteLike[]> | INoteLike[],
+    fetchNoteReposts: (noteId: string) => Promise<INoteRepost[]> | INoteRepost[],
     replyToNote: (noteId: string, content: string) => Promise<INoteReply> | INoteReply,
 
     // feed-scope
