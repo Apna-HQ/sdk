@@ -17,7 +17,7 @@ export interface INostr {
      * @param data - The data to encode, must match the expected structure for the prefix
      * @returns A bech32-encoded string with the specified prefix (e.g., npub1...)
      */
-    encode: <Prefix extends keyof Prefixes>(type: Prefix, data: Prefixes[Prefix]) => `${Prefix}1${string}`,
+    encode: <Prefix extends keyof Prefixes>(type: Prefix, data: Prefixes[Prefix]) => string,
     
     /**
      * Decodes a bech32-encoded Nostr identifier string back into its component data.
@@ -33,7 +33,7 @@ export interface INostr {
      * @param nip19String - A bech32-encoded string with a valid Nostr prefix
      * @returns An object containing the decoded data and type information
      */
-    decode: <Prefix extends keyof Prefixes>(nip19String: `${Prefix}1${string}`) => DecodeValue<Prefix>,
+    decode: <Prefix extends keyof Prefixes>(nip19String: string) => DecodeValue<Prefix>,
     
     // data fetch
     /**
