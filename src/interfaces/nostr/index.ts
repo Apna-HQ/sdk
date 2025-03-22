@@ -2,10 +2,17 @@ export interface INostr {
 
     // LOW-LEVEL APIs
 
-    // PublishEvent: (signer: (unsignedEvent: UnsignedEvent) => IEvent, unsignedEvent: UnsignedEvent, relays?: string[]) => void,
-    // FetchEvent: (eventFilters: IEventFilter[], relays?: string[]) => void,
-    // FetchAllEvents: (eventFilters: IEventFilter[], relays?: string[]) => void,
-    // SubscribeToEvents: (eventFilters: IEventFilter[], eventHandler: (e: IEvent) => void, relays?: string[]) => void,
+    // utils
+    encode: <Prefix extends keyof Prefixes>(prefix: Prefix, value: DecodeValue<Prefix>) => `${Prefix}1${string}`,
+    decode: <Prefix extends keyof Prefixes>(nip19String: `${Prefix}1${string}`) => DecodeValue<Prefix>,
+    
+    // data fetch
+    fetchEvent: (eventFilter: ISingleEventFilter, relaysOverride?: string[]) => Promise<IEvent> | IEvent,
+    fetchEvents: (eventFilter: IEventFilter, relaysOverride?: string[]) => Promise<IEvent[]> | IEvent[],
+    subscribeToEvents: (eventFilter: IEventFilter, onevent: (event: IEvent) => void, relaysOverride?: string[]) => Promise<void> | void,
+    
+    // signing and publishing
+    signAndPublishEvent: (event: IUnsignedEvent, relaysOverride?: string[]) => Promise<IEvent> | IEvent,
 
 
     // HIGH-LEVEL APIs
@@ -31,10 +38,42 @@ export interface INostr {
     // feed-scope
     fetchFeed: (feedType: string, since?: number, until?: number, limit?: number) => Promise<IEvent[]> | IEvent[],
     fetchUserFeed: (npub: string, feedType: string, since?: number, until?: number, limit?: number) => Promise<IEvent[]> | IEvent[],
-    subscribeToFeed: (feedType: string, onevent: (event: IEvent) => void, withReactions?: Boolean) => Promise<void> | void,
-    subscribeToUserFeed: (npub: string, feedType: FeedType, onevent: (event: IEvent) => void, withReactions?: Boolean) => Promise<void> | void,
-    subscribeToUserNotifications?: (onevent: (event: IEvent) => void) => Promise<void> | void
+    subscribeToFeed: (feedType: string, onevent: (event: IEvent) => void, since?: number, until?: number, limit?: number) => Promise<void> | void,
+    subscribeToUserFeed: (npub: string, feedType: FeedType, onevent: (event: IEvent) => void, since?: number, until?: number, limit?: number) => Promise<void> | void,
 }
+
+export type ProfilePointer = {
+    pubkey: string;
+    relays?: string[];
+};
+export type EventPointer = {
+    id: string;
+    relays?: string[];
+    author?: string;
+    kind?: number;
+};
+export type AddressPointer = {
+    identifier: string;
+    pubkey: string;
+    kind: number;
+    relays?: string[];
+};
+type Prefixes = {
+    nprofile: ProfilePointer;
+    nrelay: string;
+    nevent: EventPointer;
+    naddr: AddressPointer;
+    nsec: Uint8Array;
+    npub: string;
+    note: string;
+};
+type DecodeValue<Prefix extends keyof Prefixes> = {
+    type: Prefix;
+    data: Prefixes[Prefix];
+};
+export type DecodeResult = {
+    [P in keyof Prefixes]: DecodeValue<P>;
+}[keyof Prefixes];
 
 export interface IUserProfile {
     nprofile: string,
@@ -53,18 +92,19 @@ interface ITag {
     [index: number]: string;
 }
 
-interface IEvent {
+export interface IUnsignedEvent {
     content: string;
     created_at: number;
     id: string;
     kind: number;
     pubkey: string;
-    sig: string;
     tags: ITag[];
     relays?: string[];
 }
 
-// interface UnsignedEvent extends Omit<IEvent, "sig"> {}
+export interface IEvent extends IUnsignedEvent {
+    sig: string;
+}
 
 export interface INoteReactions {
     likes: INoteLike[],
@@ -103,4 +143,8 @@ export interface IEventFilter {
     until?: number;
     limit?: number;
     search?: string;
+}
+
+export interface ISingleEventFilter extends IEventFilter {
+    limit: 1
 }
