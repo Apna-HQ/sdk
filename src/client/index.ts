@@ -1,140 +1,218 @@
-export * from "./react"
-import postRobot from 'post-robot';
-import { INostr } from '../interfaces/nostr';
+export * from './react';
 
+import { detectChannel, Channel } from '../core/channels';
+import { Bridge } from '../core/bridge';
+import { Transport } from '../core/transport';
+import { HttpClient } from '../core/http';
+import {
+  CapabilityDescriptor,
+  EventMessage,
+  EventName,
+  MessageType,
+} from '../core/protocol';
+import {
+  ApnaNostrWithLegacy,
+  createNostrProtocol,
+} from '../protocols/nostr';
+import {
+  ApnaIdentityDomain,
+  createIdentityDomain,
+} from '../domains/identity';
+import { ApnaSocialDomain, createSocialDomain } from '../domains/social';
+import { createPermissionsClient } from '../permissions';
+import { ApnaPermissions } from '../interfaces/permissions';
+import { createBitcoinProtocol, ApnaBitcoin } from '../protocols/bitcoin';
+import { createEthereumProtocol, ApnaEthereum } from '../protocols/ethereum';
 
-export class ApnaApp {
-    // @ts-ignore
-    constructor(config) {
-        // @ts-ignore
-        this.config = config;
-        // @ts-ignore
-        this.sdkVersion = '1.0.0';
+/** SDK version reported to the host at handshake. */
+const SDK_VERSION = '2.0.0';
 
-        this.initSDK()
-    }
-
-    // Initialize the SDK
-    initSDK() {
-        this.handshake();
-        this.listenForMessages();
-    }
-
-    // Perform a handshake with the parent window (super app)
-    handshake() {
-        postRobot.send(window.parent, 'handshake:init', {
-            // @ts-ignore
-            appId: this.config.appId,
-            // @ts-ignore
-            version: this.sdkVersion,
-            // @ts-ignore
-        }).then((event) => {
-            console.log('Received handshake response from super app:', event.data);
-            // Additional logic after handshake
-            // @ts-ignore
-        }).catch((err) => {
-            console.error('Handshake failed:', err);
-        });
-    }
-
-    // Register a listener for incoming messages from the parent
-    listenForMessages() {
-        // @ts-ignore
-        postRobot.on('superapp:message', (event) => {
-            console.log('Received message from super app:', event.data);
-            // Handle the message
-            return this.handleMessage(event.data);
-        });
-    }
-
-    // Handle messages received from the parent window
-    // @ts-ignore
-    handleMessage(data) {
-        if (data.type === 'handshake:response') {
-            console.log('Handshake response received:', data);
-            return { success: true };
-        } else if (data.type === 'customise:toggleHighlight') {
-            // @ts-ignore
-            window.toggleHighlight()
-            return { success: true, message: 'Triggered toggleHighlight' }
-        } else {
-            console.log('Handling other message types:', data);
-            // Process the message
-            return { success: true, message: 'Processed successfully' };
-        }
-    }
-
-    // Example method for sending data to the super app
-    // @ts-ignore
-    sendData(data) {
-        postRobot.send(window.parent, 'miniapp:data', data)
-            // @ts-ignore
-            .then((event) => {
-                console.log('Response from super app:', event.data);
-            })
-            // @ts-ignore
-            .catch((err) => {
-                console.error('Failed to send data:', err);
-            });
-    }
-
-    callHostMethod = async (callData: {method: string, args: any[]}): Promise<any> => {
-        const response: {success: boolean, returnValue?: any, errorMessage?: string} = await postRobot.send(window.parent, 'host:method-call', callData)
-            // @ts-ignore
-            .then((event) => {
-                console.log('return value from super app:', event.data);
-                return {
-                    // @ts-ignore
-                    success: event.data.success,
-                    // @ts-ignore
-                    returnValue: event.data.returnValue,
-                    // @ts-ignore
-                    errorMessage: event.data.errorMessage
-                };
-            })
-            // @ts-ignore
-            .catch((err) => {
-                console.error('Failed to send data:', err);
-                return {
-                    success: false,
-                    errorMessage: err.toString()
-                }
-            });
-        if (response.success) {
-            return response.returnValue
-        } else {
-            throw new Error(response.errorMessage)
-        }
-
-        
-    }
-
-    createHostMethodProxy<T>(proxyHandler: (method: string, ...args: any) => void): T {
-        const handler: ProxyHandler<any> = {
-          get(_, methodName: string) {
-            return (...args: any[]) => {
-              console.log(`Called ${methodName} with arguments:`, args);
-              return proxyHandler(methodName, ...args)
-            };
-          },
-        };
-        return new Proxy({}, handler) as T;
-      }
-
-    hostMethodProxyHandler = (module: string) => {
-        return (method: string, ...args: any[]) => {
-            return this.callHostMethod({
-                method: `${module}.${method}`,
-                args
-            })
-        }
-    }
-    
-    // Initialising modules
-    nostr = this.createHostMethodProxy<INostr>(this.hostMethodProxyHandler("nostr"))
-
+export interface ApnaAppConfig {
+  /** Stable id of this mini-app (its publisher-rooted identity / app id). */
+  appId: string;
+  /** Explicit channel override. Omit to auto-detect (iframe vs host-extension). */
+  channel?: Channel;
 }
 
-// const { Nostr } = new ApnaApp({})
-// const a = new Nostr("here")
-// a.publishNote("test")
+/**
+ * `ApnaApp` — the mini-app side of the bridge.
+ *
+ * Detects its channel, performs the handshake over the new `Bridge`, builds a
+ * `Transport`, and exposes the host's capabilities.
+ */
+export class ApnaApp {
+  readonly appId: string;
+  readonly instanceId: string;
+  /** Resolves once the handshake has completed and the transport is ready. */
+  readonly ready: Promise<void>;
+  /** Low-level Nostr protocol module. */
+  readonly nostr: ApnaNostrWithLegacy;
+  /** High-level identity domain. Latest methods are mirrored at `.v1`. */
+  readonly identity: ApnaIdentityDomain;
+  /** High-level social domain. Latest methods are mirrored at `.v1`. */
+  readonly social: ApnaSocialDomain;
+  /** Client-side permissions convenience module. */
+  readonly permissions: ApnaPermissions;
+  /** Low-level Bitcoin module. Throws when the host does not support it. */
+  readonly bitcoin: ApnaBitcoin;
+  /** Low-level Ethereum module. Throws when the host does not support it. */
+  readonly ethereum: ApnaEthereum;
+
+  private readonly channel: Channel;
+  private readonly bridge: Bridge;
+  private readonly eventListeners = new Map<
+    EventName,
+    Set<(payload: unknown) => void>
+  >();
+  private transport?: Transport;
+  private capabilities: CapabilityDescriptor[] = [];
+  private httpEndpoint?: string;
+  private designRemote?: string;
+
+  constructor(config: ApnaAppConfig) {
+    this.appId = config.appId;
+    this.channel = detectChannel({ channel: config.channel });
+    this.bridge = new Bridge(this.channel);
+    this.instanceId = this.bridge.instanceId;
+    this.nostr = createNostrProtocol({
+      transport: () => this.getTransport(),
+      call: (capability, args) => this.callCapability(capability, args),
+    });
+    this.identity = createIdentityDomain({
+      call: (capability, args) => this.callCapability(capability, args),
+      callSupported: (capability, args, fallbackCapability, fallbackArgs) =>
+        this.callSupportedCapability(
+          capability,
+          args,
+          fallbackCapability,
+          fallbackArgs
+        ),
+    });
+    this.social = createSocialDomain({
+      call: (capability, args) => this.callCapability(capability, args),
+      callSupported: (capability, args, fallbackCapability, fallbackArgs) =>
+        this.callSupportedCapability(
+          capability,
+          args,
+          fallbackCapability,
+          fallbackArgs
+        ),
+    });
+    this.permissions = createPermissionsClient({
+      bridge: this.bridge,
+      call: (capability, args) => this.callCapability(capability, args),
+    });
+    this.bitcoin = createBitcoinProtocol({
+      transport: () => this.getTransport(),
+      isCapabilitySupported: (capability) =>
+        this.isCapabilitySupported(capability),
+    });
+    this.ethereum = createEthereumProtocol({
+      transport: () => this.getTransport(),
+      isCapabilitySupported: (capability) =>
+        this.isCapabilitySupported(capability),
+    });
+    this.ready = this.init();
+  }
+
+  /** Capability descriptors negotiated at handshake. */
+  getCapabilities(): CapabilityDescriptor[] {
+    return this.capabilities;
+  }
+
+  /** The host's design-component Module Federation remote, if advertised. */
+  getDesignRemote(): string | undefined {
+    return this.designRemote;
+  }
+
+  /** Tear down the bridge and channel. */
+  dispose(): void {
+    this.eventListeners.clear();
+    this.bridge.dispose();
+    this.channel.dispose();
+  }
+
+  /** Subscribe to typed host -> app events. */
+  on(event: EventName, handler: (payload: unknown) => void): () => void {
+    let listeners = this.eventListeners.get(event);
+    if (!listeners) {
+      listeners = new Set();
+      this.eventListeners.set(event, listeners);
+    }
+    listeners.add(handler);
+    return () => {
+      this.eventListeners.get(event)?.delete(handler);
+    };
+  }
+
+  private async init(): Promise<void> {
+    await this.channel.ready();
+    const ack = await this.bridge.handshake({
+      appId: this.appId,
+      sdkVersion: SDK_VERSION,
+    });
+    this.capabilities = ack.capabilities ?? [];
+    this.httpEndpoint = ack.httpEndpoint;
+    this.designRemote = ack.designRemote;
+    const httpClient = this.httpEndpoint
+      ? new HttpClient({ endpoint: this.httpEndpoint })
+      : undefined;
+    this.transport = new Transport({
+      bridge: this.bridge,
+      httpClient,
+      capabilities: this.capabilities,
+    });
+    this.bridge.on(MessageType.Event, this.handleEvent);
+  }
+
+  private readonly handleEvent = (message: EventMessage): void => {
+    // Until `apna.on` lands (APNA-RD-HOST-014), keep the one legacy event the
+    // ecosystem depends on working: FAB "Customise Mode" -> highlight toggle.
+    if (message.event === EventName.CustomiseToggleHighlight) {
+      const w = window as unknown as { toggleHighlight?: () => void };
+      w.toggleHighlight?.();
+    }
+    this.eventListeners
+      .get(message.event)
+      ?.forEach((handler) => handler(message.payload));
+  };
+
+  private async callCapability(
+    capability: string,
+    args: unknown[]
+  ): Promise<unknown> {
+    await this.ready;
+    // `transport` is assigned by `init()` before `ready` resolves.
+    return this.transport!.call(capability, args);
+  }
+
+  private async callSupportedCapability(
+    capability: string,
+    args: unknown[],
+    fallbackCapability?: string,
+    fallbackArgs?: unknown[]
+  ): Promise<unknown> {
+    await this.ready;
+    const hasPrimary = this.capabilities.some(
+      (descriptor) => descriptor.capability === capability
+    );
+    const selected = hasPrimary || !fallbackCapability
+      ? capability
+      : fallbackCapability;
+    const selectedArgs = selected === capability ? args : fallbackArgs ?? args;
+    return this.transport!.call(selected, selectedArgs);
+  }
+
+  private getTransport(): Transport {
+    if (!this.transport) {
+      throw new Error('[apna] ApnaApp is not ready yet');
+    }
+    return this.transport;
+  }
+
+  private isCapabilitySupported(capability: string): boolean {
+    return this.capabilities.some(
+      (descriptor) => descriptor.capability === capability
+    );
+  }
+}
