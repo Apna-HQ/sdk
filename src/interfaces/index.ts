@@ -18,6 +18,7 @@ export * from './social';
 export * from './ui';
 export * from './notifications';
 export * from './permissions';
+export * from './widgets';
 export * from './host';
 
 // `FeedType` is exported by both the legacy `./nostr` and the new `./social`

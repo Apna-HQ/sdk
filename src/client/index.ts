@@ -21,6 +21,8 @@ import {
 import { ApnaSocialDomain, createSocialDomain } from '../domains/social';
 import { createPermissionsClient } from '../permissions';
 import { ApnaPermissions } from '../interfaces/permissions';
+import { createWidgetsClient } from '../widgets';
+import { ApnaWidgets } from '../interfaces/widgets';
 import { createBitcoinProtocol, ApnaBitcoin } from '../protocols/bitcoin';
 import { createEthereumProtocol, ApnaEthereum } from '../protocols/ethereum';
 
@@ -53,6 +55,8 @@ export class ApnaApp {
   readonly social: ApnaSocialDomain;
   /** Client-side permissions convenience module. */
   readonly permissions: ApnaPermissions;
+  /** Mini-app authored widgets metadata module. */
+  readonly widgets: ApnaWidgets;
   /** Low-level Bitcoin module. Throws when the host does not support it. */
   readonly bitcoin: ApnaBitcoin;
   /** Low-level Ethereum module. Throws when the host does not support it. */
@@ -101,6 +105,11 @@ export class ApnaApp {
     this.permissions = createPermissionsClient({
       bridge: this.bridge,
       call: (capability, args) => this.callCapability(capability, args),
+    });
+    this.widgets = createWidgetsClient({
+      call: (capability, args) => this.callCapability(capability, args),
+      isCapabilitySupported: (capability) =>
+        this.isCapabilitySupported(capability),
     });
     this.bitcoin = createBitcoinProtocol({
       transport: () => this.getTransport(),

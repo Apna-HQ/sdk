@@ -4,6 +4,7 @@ export * from "./interfaces"
 export * from "./protocols"
 export * from "./domains"
 export * from "./permissions"
+export * from "./widgets"
 export * from "./core/channels"
 export { EventName } from "./core/protocol"
 
