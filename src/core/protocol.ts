@@ -51,7 +51,7 @@ export const MessageType = {
   PermissionResponse: 'permission:response',
   Event: 'event',
 } as const;
-export type MessageType = (typeof MessageType)[keyof typeof MessageType];
+export type MessageType = typeof MessageType[keyof typeof MessageType];
 
 /* -------------------------------------------------------------------------- */
 /* Host -> app events                                                         */
@@ -65,10 +65,20 @@ export const EventName = {
   ProfileSwitched: 'profile:switched',
   /** Updated design-component (Module Federation) selections for this app. */
   DesignSelections: 'design:selections',
+  /** Host resolved light/dark theme changed. */
+  ThemeChanged: 'theme:changed',
   /** A permission grant for this app changed (granted/revoked). */
   PermissionsChanged: 'permissions:changed',
 } as const;
-export type EventName = (typeof EventName)[keyof typeof EventName];
+export type EventName = typeof EventName[keyof typeof EventName];
+
+/** Host-resolved theme state sent with `theme:changed`. */
+export type HostResolvedTheme = 'light' | 'dark';
+
+/** Payload for `theme:changed` host -> app events. */
+export interface HostThemePayload {
+  theme: HostResolvedTheme;
+}
 
 /* -------------------------------------------------------------------------- */
 /* Envelopes                                                                  */
@@ -225,9 +235,7 @@ export type ApnaMessage =
 export function isApnaMessage(value: unknown): value is ApnaMessage {
   if (typeof value !== 'object' || value === null) return false;
   const msg = value as Record<string, unknown>;
-  return (
-    msg.protocol === APNA_PROTOCOL && typeof msg.type === 'string'
-  );
+  return msg.protocol === APNA_PROTOCOL && typeof msg.type === 'string';
 }
 
 /** Narrow an `ApnaMessage` to a specific `type`. */
