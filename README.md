@@ -43,6 +43,13 @@ await apna.ready;
 const me = await apna.identity.v1.me();
 const feed = await apna.social.v1.feed('FOLLOWING_FEED', { limit: 50 });
 await apna.social.v1.publishNote('Hello from my mini-app!');
+const stopFeed = apna.social.v1.subscribeFeed(
+  'FOLLOWING_FEED',
+  { since: Math.floor(Date.now() / 1000) },
+  (event) => {
+    console.log('new social event', event.id);
+  }
+);
 
 // Low-level protocol module — escape hatch for power paths.
 const events = await apna.nostr.query([{ kinds: [1], authors: [me.pubkey], limit: 10 }]);
@@ -57,6 +64,8 @@ await apna.permissions.request([
 apna.on('customise:toggleHighlight', (enabled) => {
   // toggle a "design mode" overlay
 });
+
+stopFeed();
 ```
 
 `apna.ready` resolves once the SDK has finished the `handshake:init` → `handshake:ack` round-trip with the host. Until then, calls queue. If the SDK is loaded **outside** a host (no iframe parent, no host extension), `apna.ready` rejects with `"[apna] No Apna host detected"`.
@@ -237,12 +246,14 @@ If you were on `@apna/sdk` 0.1.x, the redesign is breaking. The flat `apna.nostr
 | `apna.nostr.fetchUserMetadata(pk)` | `apna.social.v1.userMetadata(pk)` |
 | `apna.nostr.publishNote(content)` | `apna.social.v1.publishNote(content)` |
 | `apna.nostr.likeNote(id)` | `apna.social.v1.like(id)` |
+| `apna.nostr.likeNote(id)` | `apna.social.v1.react(id, '+')` |
 | `apna.nostr.repostNote(id, '')` | `apna.social.v1.repost(id)` |
+| `apna.nostr.repostNote(id, quote)` | `apna.social.v1.quoteRepost(id, quote)` |
 | `apna.nostr.replyToNote(id, content)` | `apna.social.v1.reply(id, content)` |
 | `apna.nostr.followUser(pk)` | `apna.social.v1.follow(pk)` |
 | `apna.nostr.unfollowUser(pk)` | `apna.social.v1.unfollow(pk)` |
 
-Power paths (custom filters, subscriptions) move to the low-level `apna.nostr.*` protocol module: `apna.nostr.query`, `apna.nostr.queryOne`, `apna.nostr.subscribe`, `apna.nostr.signEvent`, `apna.nostr.publish`.
+Realtime social paths are available on `apna.social.v1`: `subscribeFeed`, `subscribeUserFeed`, `subscribeThread`, `subscribeNotifications`, `subscribeMessages`, and `subscribeProfile`. Power paths (custom filters) move to the low-level `apna.nostr.*` protocol module: `apna.nostr.query`, `apna.nostr.queryOne`, `apna.nostr.subscribe`, `apna.nostr.signEvent`, `apna.nostr.publish`.
 
 Host side: the old `{ methodHandlers: { nostr: { … } } }` shape is replaced by a flat `handlers: CapabilityHandlers` registry keyed by full capability string (e.g. `'nostr.signEvent'`, `'social.v1.publishNote'`). A temporary back-compat adapter accepts the old shape but it will be removed in a future release.
 

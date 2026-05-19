@@ -9,8 +9,14 @@
 /** Free-form profile metadata (Nostr kind-0 content). */
 export interface UserMetadata {
   name?: string;
+  display_name?: string;
   about?: string;
   picture?: string;
+  banner?: string;
+  website?: string;
+  nip05?: string;
+  lud06?: string;
+  lud16?: string;
   [key: string]: unknown;
 }
 

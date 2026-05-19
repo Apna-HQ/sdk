@@ -6,6 +6,11 @@ export interface CapabilityRuntime {
     fallbackCapability?: string,
     fallbackArgs?: unknown[]
   ): Promise<unknown>;
+  subscribe?(
+    capability: string,
+    args: unknown[],
+    onEvent: (data: unknown) => void
+  ): () => void;
 }
 
 export type VersionedDomain<T> = T & {

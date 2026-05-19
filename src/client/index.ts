@@ -101,6 +101,8 @@ export class ApnaApp {
           fallbackCapability,
           fallbackArgs
         ),
+      subscribe: (capability, args, onEvent) =>
+        this.subscribeCapability(capability, args, onEvent),
     });
     this.permissions = createPermissionsClient({
       bridge: this.bridge,
@@ -217,6 +219,14 @@ export class ApnaApp {
       throw new Error('[apna] ApnaApp is not ready yet');
     }
     return this.transport;
+  }
+
+  private subscribeCapability(
+    capability: string,
+    args: unknown[],
+    onEvent: (data: unknown) => void
+  ): () => void {
+    return this.getTransport().subscribe(capability, args, onEvent);
   }
 
   private isCapabilitySupported(capability: string): boolean {
