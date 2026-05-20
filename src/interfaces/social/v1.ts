@@ -24,6 +24,19 @@ export interface Note extends NostrEvent {
   reactions?: NoteReactions;
 }
 
+/** A public-key mention the host should encode as a `p` tag. */
+export interface NoteMention {
+  pubkey: string;
+  relay?: string;
+  marker?: string;
+}
+
+/** Options used when publishing notes, replies, and quote reposts. */
+export interface NotePublishOptions {
+  mentions?: NoteMention[];
+  tags?: string[][];
+}
+
 /** A root note plus its direct replies. */
 export interface NoteAndReplies {
   note: Note;
@@ -69,17 +82,49 @@ export interface DirectMessageOptions extends FeedOptions {
   peerPubkey?: string;
 }
 
+/** Options for profile suggestion lookup. */
+export interface ProfileSuggestionOptions {
+  limit?: number;
+  includeFollowing?: boolean;
+}
+
+/** Upload a media blob through the host, usually to a Blossom server. */
+export interface MediaUploadOptions {
+  data: ArrayBuffer | Uint8Array | number[] | string;
+  contentType?: string;
+  fileName?: string;
+  server?: string;
+  description?: string;
+}
+
+/** Public descriptor returned after a media upload. */
+export interface MediaUploadDescriptor {
+  url: string;
+  sha256: string;
+  size: number;
+  type?: string;
+  uploaded?: number;
+}
+
 /** Shared callback shape for social subscriptions. */
 export type SocialEventHandler<T> = (event: T) => void;
 
 /** `apna.social.v1` — the abstracted social surface for mini-app developers. */
 export interface ApnaSocialV1 {
-  publishNote(content: string): Promise<Note>;
-  reply(noteId: string, content: string): Promise<Note>;
+  publishNote(content: string, options?: NotePublishOptions): Promise<Note>;
+  reply(
+    noteId: string,
+    content: string,
+    options?: NotePublishOptions
+  ): Promise<Note>;
   react(noteId: string, content?: string): Promise<NostrEvent>;
   like(noteId: string): Promise<NostrEvent>;
   repost(noteId: string, quoteContent?: string): Promise<NostrEvent>;
-  quoteRepost(noteId: string, content: string): Promise<NostrEvent>;
+  quoteRepost(
+    noteId: string,
+    content: string,
+    options?: NotePublishOptions
+  ): Promise<NostrEvent>;
   note(noteId: string, withReactions?: boolean): Promise<Note>;
   noteAndReplies(
     noteId: string,
@@ -97,7 +142,12 @@ export interface ApnaSocialV1 {
   unfollow(pubkeyOrNpub: string): Promise<void>;
   userProfile(pubkeyOrNpub: string): Promise<UserProfile>;
   userMetadata(pubkeyOrNpub: string): Promise<UserMetadata>;
+  profileSuggestions(
+    query?: string,
+    opts?: ProfileSuggestionOptions
+  ): Promise<UserProfile[]>;
   updateProfile(metadata: UserMetadata): Promise<UserProfile>;
+  uploadMedia(opts: MediaUploadOptions): Promise<MediaUploadDescriptor>;
   notifications(opts?: SocialInboxOptions): Promise<SocialNotification[]>;
   messages(opts?: DirectMessageOptions): Promise<DirectMessage[]>;
   sendDirectMessage(

@@ -4,8 +4,12 @@ import {
   DirectMessageOptions,
   FeedOptions,
   FeedType,
+  MediaUploadDescriptor,
+  MediaUploadOptions,
   Note,
   NoteAndReplies,
+  NotePublishOptions,
+  ProfileSuggestionOptions,
   SocialInboxOptions,
   SocialNotification,
 } from '../../interfaces/social/v1';
@@ -40,19 +44,19 @@ function subscribe<T>(
 /** Create `apna.social.v1`, falling back to legacy Nostr host APIs. */
 export function createSocialV1(runtime: CapabilityRuntime): ApnaSocialV1 {
   return {
-    publishNote: (content: string) =>
+    publishNote: (content: string, options?: NotePublishOptions) =>
       runtime.callSupported(
         'social.v1.publishNote',
-        [content],
+        [content, options],
         'nostr.publishNote',
-        [content]
+        [content, options]
       ) as Promise<Note>,
-    reply: (noteId: string, content: string) =>
+    reply: (noteId: string, content: string, options?: NotePublishOptions) =>
       runtime.callSupported(
         'social.v1.reply',
-        [noteId, content],
+        [noteId, content, options],
         'nostr.replyToNote',
-        [noteId, content]
+        [noteId, content, options]
       ) as Promise<Note>,
     react: (noteId: string, content = '+') =>
       runtime.callSupported(
@@ -75,10 +79,14 @@ export function createSocialV1(runtime: CapabilityRuntime): ApnaSocialV1 {
         'nostr.repostNote',
         [noteId, quoteContent]
       ) as Promise<NostrEvent>,
-    quoteRepost: (noteId: string, content: string) =>
+    quoteRepost: (
+      noteId: string,
+      content: string,
+      options?: NotePublishOptions
+    ) =>
       runtime.callSupported(
         'social.v1.quoteRepost',
-        [noteId, content],
+        [noteId, content, options],
         'social.v1.repost',
         [noteId, content]
       ) as Promise<NostrEvent>,
@@ -156,6 +164,14 @@ export function createSocialV1(runtime: CapabilityRuntime): ApnaSocialV1 {
         'nostr.fetchUserMetadata',
         [pubkeyOrNpub]
       ) as Promise<UserMetadata>,
+    profileSuggestions: (
+      query?: string,
+      opts?: ProfileSuggestionOptions
+    ) =>
+      runtime.callSupported('social.v1.profileSuggestions', [
+        query,
+        opts,
+      ]) as Promise<UserProfile[]>,
     updateProfile: (metadata: UserMetadata) =>
       runtime.callSupported(
         'social.v1.updateProfile',
@@ -163,6 +179,13 @@ export function createSocialV1(runtime: CapabilityRuntime): ApnaSocialV1 {
         'identity.v1.updateProfile',
         [metadata]
       ) as Promise<UserProfile>,
+    uploadMedia: (opts: MediaUploadOptions) =>
+      runtime.callSupported(
+        'social.v1.uploadMedia',
+        [opts],
+        'nostr.uploadMedia',
+        [opts]
+      ) as Promise<MediaUploadDescriptor>,
     notifications: (opts?: SocialInboxOptions) =>
       runtime.callSupported('social.v1.notifications', [
         opts,
