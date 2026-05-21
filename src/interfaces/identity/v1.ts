@@ -35,6 +35,8 @@ export interface UserProfile {
 
 /** `apna.identity.v1` — the active user and other users' root identities. */
 export interface ApnaIdentityV1 {
+  /** The currently signed-in user's hex public key, without profile relay reads. */
+  activePubkey(): Promise<string>;
   /** The currently signed-in user's profile. */
   me(): Promise<UserProfile>;
   /** Resolve any user's profile by hex pubkey or `npub`. */
