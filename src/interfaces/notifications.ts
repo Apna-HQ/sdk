@@ -23,6 +23,10 @@ export interface NotificationPayload {
   icon?: string;
   /** Optional deep-link / URL opened on click. */
   url?: string;
+  /** Optional single recipient, accepted as hex pubkey or npub by compatible hosts. */
+  targetPubkey?: string;
+  /** Optional recipient list, accepted as hex pubkeys or npubs by compatible hosts. */
+  targetPubkeys?: string[];
   /** Optional opaque data forwarded to the service worker. */
   data?: unknown;
 }
